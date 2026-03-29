@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 using UnityEditor;
 using UnityEngine;
 
@@ -12,11 +11,11 @@ namespace VATSystem.Editor
     public class VATBakerEditor : UnityEditor.Editor
     {
         private readonly List<VATBaker> _vatBakers = new();
-        
+
         public override void OnInspectorGUI()
         {
             base.OnInspectorGUI();
-            
+
             EditorGUILayout.Space();
 
             _vatBakers.Clear();
@@ -34,7 +33,8 @@ namespace VATSystem.Editor
                     {
                         Bake(t as VATBaker);
                     }
-                    
+
+                    AssetDatabase.SaveAssets();
                     AssetDatabase.Refresh();
                 }
             }
@@ -71,13 +71,13 @@ namespace VATSystem.Editor
             private readonly VATBaker _baker;
             private readonly GameObject _gameObject;
             private readonly int _vertCount;
-            
+
             private readonly Mesh _mesh = new();
             private readonly List<MeshInfo> _totalVertices = new();
             private readonly List<Vector3> _frameVertices = new();
             private readonly List<MeshInfo> _totalNormals = new();
             private readonly List<Vector3> _frameNormals = new();
-            
+
             public BakerInternal(VATBaker baker)
             {
                 _baker = baker;
@@ -91,7 +91,7 @@ namespace VATSystem.Editor
                 var keyframeCount = Mathf.FloorToInt(duration / (1f / _baker.FramesPerSecond));
                 var dt = duration / keyframeCount;
                 var width = CalculateQuadSideLength(_vertCount, keyframeCount);
-                Debug.Log($"{clip.name}: {duration:F2} s, {keyframeCount} f, {_vertCount} v, {width} px");
+                Debug.Log($"{clip.name}: {duration:F4} s, {keyframeCount} f, {_vertCount} v, {width} px");
 
                 _totalVertices.Clear();
                 for (var f = 0; f < keyframeCount; f++)
@@ -102,16 +102,45 @@ namespace VATSystem.Editor
                     _mesh.GetVertices(_frameVertices);
                     foreach (var v in _frameVertices)
                     {
-                        _totalVertices.Add(new MeshInfo{data = v});
+                        _totalVertices.Add(new MeshInfo { data = v });
                     }
                 }
 
                 var tex = Render(_totalVertices, _baker.ComputeShader, width);
-                _baker.ResultDebug = tex;
-                tex.name = $"{_baker.Prefix}_{clip.name}";
-                SaveTexture(tex, AssetDatabase.GetAssetPath(_baker.SaveLocation));
+                var vertTexName = "VertexTexture";
+                tex.name = vertTexName;
+
+                var saveLocationPath = AssetDatabase.GetAssetPath(_baker.SaveLocation);
+                var vatDataName = $"{_baker.Prefix}_{clip.name}.asset";
+                var vatDataPath = Path.Combine(saveLocationPath, vatDataName);
+                var vatData = AssetDatabase.LoadMainAssetAtPath(vatDataPath) as VATData;
+                if (vatData == null)
+                {
+                    vatData = CreateInstance<VATData>();
+                    AssetDatabase.CreateAsset(vatData, vatDataPath);
+                }
+
+                var subAssets = AssetDatabase.LoadAllAssetsAtPath(vatDataPath).Where(AssetDatabase.IsSubAsset);
+                var vertTexAsset = subAssets.FirstOrDefault(v => v.name == vertTexName) as Texture2D;
+                if (vertTexAsset == null)
+                {
+                    AssetDatabase.AddObjectToAsset(tex, vatData);
+                }
+                else
+                {
+                    EditorUtility.CopySerialized(tex, vertTexAsset);
+                    EditorUtility.SetDirty(vertTexAsset);
+                }
+
+                vatData.VertexTexture = vertTexAsset;
+                vatData.NormalTexture = null;
+                vatData.VertexCount = _vertCount;
+                vatData.KeyframeCount = keyframeCount;
+                vatData.Duration = duration;
+                vatData.Loop = clip.wrapMode == WrapMode.Loop;
+                EditorUtility.SetDirty(vatData);
             }
-            
+
             private static readonly int WidthProperty = Shader.PropertyToID("Width");
             private static readonly int HeightProperty = Shader.PropertyToID("Height");
             private static readonly int DataProperty = Shader.PropertyToID("MeshData");
@@ -128,7 +157,7 @@ namespace VATSystem.Editor
                     sRGB = false
                 };
                 var rt = RenderTexture.GetTemporary(desc);
-                
+
                 var buffer = new ComputeBuffer(data.Count, System.Runtime.InteropServices.Marshal.SizeOf(typeof(MeshInfo)));
                 buffer.SetData(data);
                 var kernel = shader.FindKernel("CSMain");
@@ -139,26 +168,20 @@ namespace VATSystem.Editor
                 shader.GetKernelThreadGroupSizes(kernel, out var threadsX, out var threadsY, out _);
                 shader.Dispatch(kernel, Mathf.CeilToInt((float)width / threadsX), Mathf.CeilToInt((float)height / threadsY), 1);
                 buffer.Release();
-                
+
                 var before = RenderTexture.active;
                 RenderTexture.active = rt;
                 tex.ReadPixels(new Rect(0, 0, width, height), 0, 0, false);
                 tex.Apply(false, false);
                 RenderTexture.active = before;
                 RenderTexture.ReleaseTemporary(rt);
-                
+
                 return tex;
             }
 
             private struct MeshInfo
             {
                 public Vector4 data;
-            }
-
-            private void SaveTexture(Texture2D tex, string folderPath)
-            {
-                var filePath = Path.Combine(folderPath, tex.name + ".asset");
-                AssetDatabase.CreateAsset(tex, filePath);
             }
         }
     }
