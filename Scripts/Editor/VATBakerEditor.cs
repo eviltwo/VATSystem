@@ -88,13 +88,13 @@ namespace VATSystem.Editor
             public void Bake(AnimationClip clip)
             {
                 var duration = clip.length;
-                var dt = 1f / _baker.FramesPerSecond;
-                var frameCount = Mathf.CeilToInt(duration / dt);
-                var width = CalculateQuadSideLength(_vertCount, frameCount);
-                Debug.Log($"{clip.name}: {duration:F2} s, {frameCount} f, {_vertCount} v, {width} px");
+                var keyframeCount = Mathf.FloorToInt(duration / (1f / _baker.FramesPerSecond));
+                var dt = duration / keyframeCount;
+                var width = CalculateQuadSideLength(_vertCount, keyframeCount);
+                Debug.Log($"{clip.name}: {duration:F2} s, {keyframeCount} f, {_vertCount} v, {width} px");
 
                 _totalVertices.Clear();
-                for (var f = 0; f < frameCount; f++)
+                for (var f = 0; f < keyframeCount; f++)
                 {
                     clip.SampleAnimation(_gameObject, dt * f);
                     _baker.SkinnedMeshRenderer.BakeMesh(_mesh);
