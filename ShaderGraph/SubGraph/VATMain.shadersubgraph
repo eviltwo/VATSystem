@@ -10,9 +10,6 @@
             "m_Id": "ce7cb16ab2984888af3d65f699d377ce"
         },
         {
-            "m_Id": "00b73e9483d245dabc8cf87807ad5131"
-        },
-        {
             "m_Id": "24468a26cf0b4a82b29bcc1d061dd805"
         },
         {
@@ -20,9 +17,6 @@
         },
         {
             "m_Id": "e8a4803d5b1845d0be0214146b22d895"
-        },
-        {
-            "m_Id": "1d42623c4d724e9cabcf3fa9fe8d58c4"
         },
         {
             "m_Id": "be08fb33a7034a5cbb2da3e0e9942e47"
@@ -841,50 +835,6 @@
 }
 
 {
-    "m_SGVersion": 1,
-    "m_Type": "UnityEditor.ShaderGraph.Internal.Vector1ShaderProperty",
-    "m_ObjectId": "00b73e9483d245dabc8cf87807ad5131",
-    "m_Guid": {
-        "m_GuidSerialized": "3178d121-9496-4d6a-b614-7e170e990c35"
-    },
-    "promotedFromAssetID": "d355f3e2b9056dd4e82da404973f1a57",
-    "promotedFromCategoryName": "",
-    "promotedOrdering": -1,
-    "m_Name": "NormalTime",
-    "m_DefaultRefNameVersion": 1,
-    "m_RefNameGeneratedByDisplayName": "NormalTime",
-    "m_DefaultReferenceName": "_NormalTime",
-    "m_OverrideReferenceName": "",
-    "m_GeneratePropertyBlock": true,
-    "m_UseCustomSlotLabel": false,
-    "m_CustomSlotLabel": "",
-    "m_DismissedVersion": 0,
-    "m_Precision": 0,
-    "overrideHLSLDeclaration": false,
-    "hlslDeclarationOverride": 0,
-    "m_Hidden": false,
-    "m_PerRendererData": false,
-    "m_customAttributes": [],
-    "m_Value": 0.0,
-    "m_FloatType": 0,
-    "m_LiteralFloatMode": false,
-    "m_RangeValues": {
-        "x": 0.0,
-        "y": 1.0
-    },
-    "m_SliderType": 0,
-    "m_SliderPower": 3.0,
-    "m_EnumType": 0,
-    "m_CSharpEnumString": "",
-    "m_EnumNames": [
-        "Default"
-    ],
-    "m_EnumValues": [
-        0
-    ]
-}
-
-{
     "m_SGVersion": 0,
     "m_Type": "UnityEditor.ShaderGraph.Vector1MaterialSlot",
     "m_ObjectId": "05b63166858a4c9b8e5ceab0fdf58d69",
@@ -1112,19 +1062,13 @@
             "m_Id": "5b9f20bae0d7419593b69603857d7779"
         },
         {
-            "m_Id": "1d42623c4d724e9cabcf3fa9fe8d58c4"
-        },
-        {
             "m_Id": "ce7cb16ab2984888af3d65f699d377ce"
-        },
-        {
-            "m_Id": "be08fb33a7034a5cbb2da3e0e9942e47"
         },
         {
             "m_Id": "e249da117da64acfa96085172b0cc25a"
         },
         {
-            "m_Id": "00b73e9483d245dabc8cf87807ad5131"
+            "m_Id": "be08fb33a7034a5cbb2da3e0e9942e47"
         }
     ]
 }
@@ -1380,50 +1324,6 @@
         "m_Guid": ""
     },
     "m_DefaultType": 0
-}
-
-{
-    "m_SGVersion": 1,
-    "m_Type": "UnityEditor.ShaderGraph.Internal.Vector1ShaderProperty",
-    "m_ObjectId": "1d42623c4d724e9cabcf3fa9fe8d58c4",
-    "m_Guid": {
-        "m_GuidSerialized": "dc822411-4bf6-48e1-b331-21324664a8e1"
-    },
-    "promotedFromAssetID": "d355f3e2b9056dd4e82da404973f1a57",
-    "promotedFromCategoryName": "",
-    "promotedOrdering": -1,
-    "m_Name": "FramesPerSecond",
-    "m_DefaultRefNameVersion": 1,
-    "m_RefNameGeneratedByDisplayName": "FramesPerSecond",
-    "m_DefaultReferenceName": "_FramesPerSecond",
-    "m_OverrideReferenceName": "",
-    "m_GeneratePropertyBlock": true,
-    "m_UseCustomSlotLabel": false,
-    "m_CustomSlotLabel": "",
-    "m_DismissedVersion": 0,
-    "m_Precision": 0,
-    "overrideHLSLDeclaration": false,
-    "hlslDeclarationOverride": 0,
-    "m_Hidden": false,
-    "m_PerRendererData": false,
-    "m_customAttributes": [],
-    "m_Value": 30.0,
-    "m_FloatType": 0,
-    "m_LiteralFloatMode": false,
-    "m_RangeValues": {
-        "x": 0.0,
-        "y": 1.0
-    },
-    "m_SliderType": 0,
-    "m_SliderPower": 3.0,
-    "m_EnumType": 0,
-    "m_CSharpEnumString": "",
-    "m_EnumNames": [
-        "Default"
-    ],
-    "m_EnumValues": [
-        0
-    ]
 }
 
 {
