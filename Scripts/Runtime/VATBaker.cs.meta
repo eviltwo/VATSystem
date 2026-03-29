@@ -1,0 +1,16 @@
+fileFormatVersion: 2
+guid: 29966da5c8da5bd4f931faf687fbe396
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences:
+  - SkinnedMeshRenderer: {instanceID: 0}
+  - Animator: {instanceID: 0}
+  - SaveLocation: {instanceID: 0}
+  - ComputeShader: {fileID: 7200000, guid: 73185cd28f8584a499d8badd933f9d02, type: 3}
+  - ResultDebug: {instanceID: 0}
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

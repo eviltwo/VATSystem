@@ -1,0 +1,18 @@
+{
+    "name": "VATSystem.Editor",
+    "rootNamespace": "VATSystem.Editor",
+    "references": [
+        "GUID:43bb85357d9e1784bb8bf85cb4294eba"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

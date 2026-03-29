@@ -1,0 +1,20 @@
+#pragma kernel CSMain
+
+struct MeshInfo
+{
+    float4 data;
+};
+
+int Width;
+int Height;
+StructuredBuffer<MeshInfo> MeshData;
+RWTexture2D<float4> Result;
+
+[numthreads(8,8,1)]
+void CSMain (uint3 id : SV_DispatchThreadID)
+{
+    if (id.x >= Width || id.y >= Height) return;
+    int index = id.x + id.y * Width;
+    MeshInfo info = MeshData[index];
+    Result[id.xy] = float4(info.data.x, info.data.y, info.data.z, 0.0);
+}
