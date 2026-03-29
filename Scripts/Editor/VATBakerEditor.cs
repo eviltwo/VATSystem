@@ -128,7 +128,6 @@ namespace VATSystem.Editor
                     sRGB = false
                 };
                 var rt = RenderTexture.GetTemporary(desc);
-                rt.enableRandomWrite = true;
                 
                 var buffer = new ComputeBuffer(data.Count, System.Runtime.InteropServices.Marshal.SizeOf(typeof(MeshInfo)));
                 buffer.SetData(data);
