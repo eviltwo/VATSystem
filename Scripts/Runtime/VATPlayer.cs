@@ -6,6 +6,8 @@ namespace VATSystem
     {
         private static readonly int VertTexProperty = Shader.PropertyToID("_VAT_VertexTexture");
         private static readonly int NormalTexProperty = Shader.PropertyToID("_VAT_NormalTexture");
+        private static readonly int TextureWidthProperty = Shader.PropertyToID("_VAT_TextureWidth");
+        private static readonly int TextureHeightProperty = Shader.PropertyToID("_VAT_TextureHeight");
         private static readonly int VertexCountProperty = Shader.PropertyToID("_VAT_VertexCount");
         private static readonly int KeyframeCountProperty = Shader.PropertyToID("_VAT_KeyframeCount");
         private static readonly int DurationProperty = Shader.PropertyToID("_VAT_Duration");
@@ -73,6 +75,8 @@ namespace VATSystem
             MeshRenderer.GetPropertyBlock(_mpb);
             _mpb.SetTexture(VertTexProperty, _playingData.VertexTexture);
             _mpb.SetTexture(NormalTexProperty, _playingData.NormalTexture);
+            _mpb.SetFloat(TextureWidthProperty, _data.VertexTexture.width);
+            _mpb.SetFloat(TextureHeightProperty, _data.VertexTexture.height);
             _mpb.SetFloat(VertexCountProperty, _playingData.VertexCount);
             _mpb.SetFloat(KeyframeCountProperty, _playingData.KeyframeCount);
             _mpb.SetFloat(DurationProperty, _playingData.Duration);
