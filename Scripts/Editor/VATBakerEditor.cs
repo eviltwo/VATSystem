@@ -91,9 +91,10 @@ namespace VATSystem.Editor
                 var keyframeCount = Mathf.FloorToInt(duration / (1f / _baker.FramesPerSecond));
                 var dt = duration / keyframeCount;
                 var width = CalculateQuadSideLength(_vertCount, keyframeCount);
-                Debug.Log($"{clip.name}: {duration:F4} s, {keyframeCount} f, {_vertCount} v, {width} px");
 
+                // Collect vertex and normals each keyframe
                 _totalVertices.Clear();
+                _totalNormals.Clear();
                 for (var f = 0; f < keyframeCount; f++)
                 {
                     clip.SampleAnimation(_gameObject, dt * f);
@@ -104,12 +105,32 @@ namespace VATSystem.Editor
                     {
                         _totalVertices.Add(new MeshInfo { data = v });
                     }
+
+                    if (_baker.BakeNormal)
+                    {
+                        _frameNormals.Clear();
+                        _mesh.GetNormals(_frameNormals);
+                        foreach (var n in _frameNormals)
+                        {
+                            _totalNormals.Add(new MeshInfo { data = n });
+                        }
+                    }
                 }
 
-                var tex = Render(_totalVertices, _baker.ComputeShader, width);
+                // Bake texture
+                var vertTex = Render(_totalVertices, _baker.ComputeShader, width);
                 var vertTexName = "VertexTexture";
-                tex.name = vertTexName;
+                vertTex.name = vertTexName;
 
+                Texture2D nrmTex = null;
+                var nrmTexName = "NormalTexture";
+                if (_baker.BakeNormal)
+                {
+                    nrmTex = Render(_totalNormals, _baker.ComputeShader, width);
+                    nrmTex.name = nrmTexName;
+                }
+
+                // Create or overwrite asset
                 var saveLocationPath = AssetDatabase.GetAssetPath(_baker.SaveLocation);
                 var vatDataName = $"{_baker.Prefix}_{clip.name}.asset";
                 var vatDataPath = Path.Combine(saveLocationPath, vatDataName);
@@ -120,25 +141,42 @@ namespace VATSystem.Editor
                     AssetDatabase.CreateAsset(vatData, vatDataPath);
                 }
 
-                var subAssets = AssetDatabase.LoadAllAssetsAtPath(vatDataPath).Where(AssetDatabase.IsSubAsset);
+                var subAssets = AssetDatabase.LoadAllAssetsAtPath(vatDataPath).Where(AssetDatabase.IsSubAsset).ToArray();
                 var vertTexAsset = subAssets.FirstOrDefault(v => v.name == vertTexName) as Texture2D;
                 if (vertTexAsset == null)
                 {
-                    AssetDatabase.AddObjectToAsset(tex, vatData);
+                    AssetDatabase.AddObjectToAsset(vertTex, vatData);
+                    vertTexAsset = vertTex;
                 }
                 else
                 {
-                    EditorUtility.CopySerialized(tex, vertTexAsset);
+                    EditorUtility.CopySerialized(vertTex, vertTexAsset);
                     EditorUtility.SetDirty(vertTexAsset);
                 }
 
+                var nrmTexAsset = subAssets.FirstOrDefault(v => v.name == nrmTexName) as Texture2D;
+                if (_baker.BakeNormal)
+                {
+                    if (nrmTexAsset == null)
+                    {
+                        AssetDatabase.AddObjectToAsset(nrmTex, vatData);
+                        nrmTexAsset = nrmTex;
+                    }
+                    else
+                    {
+                        EditorUtility.CopySerialized(nrmTexAsset, nrmTexAsset);
+                        EditorUtility.SetDirty(nrmTexAsset);
+                    }
+                }
+
                 vatData.VertexTexture = vertTexAsset;
-                vatData.NormalTexture = null;
+                vatData.NormalTexture = nrmTexAsset;
                 vatData.VertexCount = _vertCount;
                 vatData.KeyframeCount = keyframeCount;
                 vatData.Duration = duration;
                 vatData.Loop = clip.wrapMode == WrapMode.Loop;
                 EditorUtility.SetDirty(vatData);
+                Debug.Log($"{clip.name} baked to {vatDataPath}");
             }
 
             private static readonly int WidthProperty = Shader.PropertyToID("Width");
