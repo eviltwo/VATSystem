@@ -1,4 +1,5 @@
 using UnityEngine;
+using VATSystem.MaterialModules;
 
 namespace VATSystem
 {
@@ -15,7 +16,19 @@ namespace VATSystem
         private static readonly int SpeedProperty = Shader.PropertyToID("_VAT_Speed");
         private static readonly int StartTimeProperty = Shader.PropertyToID("_VAT_StartTime");
 
-        public MeshRenderer MeshRenderer;
+        [SerializeField]
+        private MeshRenderer _meshRenderer;
+
+        public MeshRenderer MeshRenderer
+        {
+            get => _meshRenderer;
+            set
+            {
+                _meshRenderer = value;
+                _materialPropertySetter?.Dispose();
+                _materialPropertySetter = null;
+            }
+        }
 
         [SerializeField]
         private VATData _data;
@@ -34,11 +47,17 @@ namespace VATSystem
 
         private VATData _playingData;
 
-        private MaterialPropertyBlock _mpb;
+        private IMaterialPropertySetter _materialPropertySetter;
 
         private void Reset()
         {
             MeshRenderer = GetComponentInChildren<MeshRenderer>();
+        }
+
+        private void OnDestroy()
+        {
+            _materialPropertySetter?.Dispose();
+            _materialPropertySetter = null;
         }
 
         private void Start()
@@ -70,20 +89,19 @@ namespace VATSystem
             _data = vatData;
             _playingData = vatData;
 
-            if (_mpb == null) _mpb = new MaterialPropertyBlock();
+            CreateMaterialPropertySetterIfNeeded();
             var loop = playbackMode == VATPlaybackMode.UseData ? _playingData.Loop : playbackMode == VATPlaybackMode.Loop;
-            MeshRenderer.GetPropertyBlock(_mpb);
-            _mpb.SetTexture(VertTexProperty, _playingData.VertexTexture);
-            _mpb.SetTexture(NormalTexProperty, _playingData.NormalTexture);
-            _mpb.SetFloat(TextureWidthProperty, _data.VertexTexture.width);
-            _mpb.SetFloat(TextureHeightProperty, _data.VertexTexture.height);
-            _mpb.SetFloat(VertexCountProperty, _playingData.VertexCount);
-            _mpb.SetFloat(KeyframeCountProperty, _playingData.KeyframeCount);
-            _mpb.SetFloat(DurationProperty, _playingData.Duration);
-            _mpb.SetFloat(LoopProperty, loop ? 1 : 0);
-            _mpb.SetFloat(SpeedProperty, speed);
-            _mpb.SetFloat(StartTimeProperty, Time.time);
-            MeshRenderer.SetPropertyBlock(_mpb);
+            _materialPropertySetter.SetTexture(VertTexProperty, _data.VertexTexture);
+            _materialPropertySetter.SetTexture(NormalTexProperty, _data.NormalTexture);
+            _materialPropertySetter.SetFloat(TextureWidthProperty, _data.VertexTexture.width);
+            _materialPropertySetter.SetFloat(TextureHeightProperty, _data.VertexTexture.height);
+            _materialPropertySetter.SetFloat(VertexCountProperty, _playingData.VertexCount);
+            _materialPropertySetter.SetFloat(KeyframeCountProperty, _playingData.KeyframeCount);
+            _materialPropertySetter.SetFloat(DurationProperty, _playingData.Duration);
+            _materialPropertySetter.SetFloat(LoopProperty, loop ? 1 : 0);
+            _materialPropertySetter.SetFloat(SpeedProperty, speed);
+            _materialPropertySetter.SetFloat(StartTimeProperty, Time.time);
+            _materialPropertySetter.Apply();
         }
 
         public void Stop()
@@ -92,10 +110,24 @@ namespace VATSystem
 
             _playingData = null;
 
-            if (_mpb == null) _mpb = new MaterialPropertyBlock();
-            MeshRenderer.GetPropertyBlock(_mpb);
-            _mpb.SetFloat(SpeedProperty, 0);
-            MeshRenderer.SetPropertyBlock(_mpb);
+            CreateMaterialPropertySetterIfNeeded();
+            _materialPropertySetter.SetFloat(SpeedProperty, 0);
+            _materialPropertySetter.Apply();
+        }
+
+        public void CreateMaterialPropertySetterIfNeeded()
+        {
+            if (_materialPropertySetter == null)
+            {
+                if (Application.isPlaying)
+                {
+                    _materialPropertySetter = new MaterialInstancePropertySetter(MeshRenderer);
+                }
+                else
+                {
+                    _materialPropertySetter = new MaterialPropertyBlockSetter(MeshRenderer);
+                }
+            }
         }
 
         private void StopOrPlay(VATData data)
@@ -109,12 +141,5 @@ namespace VATSystem
                 Play(data);
             }
         }
-    }
-
-    public enum VATPlaybackMode
-    {
-        UseData,
-        Clamp,
-        Loop,
     }
 }
