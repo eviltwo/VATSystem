@@ -1,4 +1,3 @@
-using System;
 using UnityEditor;
 using UnityEngine;
 
@@ -24,8 +23,6 @@ namespace VATSystem
 #endif
 
         public ComputeShader ComputeShader;
-
-        public Texture2D ResultDebug;
 
         private void Reset()
         {

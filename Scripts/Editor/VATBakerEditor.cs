@@ -36,6 +36,7 @@ namespace VATSystem.Editor
 
                     AssetDatabase.SaveAssets();
                     AssetDatabase.Refresh();
+                    RefreshVATPlayers();
                 }
             }
         }
@@ -52,18 +53,20 @@ namespace VATSystem.Editor
         private static void Bake(VATBaker vatBaker)
         {
             var baker = new BakerInternal(vatBaker);
-
             foreach (var clip in vatBaker.AnimationClips)
             {
                 baker.Bake(clip);
             }
         }
 
-        private static int CalculateQuadSideLength(int vertCount, int frameCount)
+
+        private void RefreshVATPlayers()
         {
-            var totalPixel = vertCount * frameCount;
-            var minSideLength = Mathf.CeilToInt(Mathf.Sqrt(totalPixel));
-            return Mathf.NextPowerOfTwo(minSideLength);
+            var players = FindObjectsByType<VATPlayer>(FindObjectsInactive.Exclude, FindObjectsSortMode.None);
+            foreach (var player in players)
+            {
+                player.Refresh();
+            }
         }
 
         private class BakerInternal
@@ -164,7 +167,7 @@ namespace VATSystem.Editor
                     }
                     else
                     {
-                        EditorUtility.CopySerialized(nrmTexAsset, nrmTexAsset);
+                        EditorUtility.CopySerialized(nrmTex, nrmTexAsset);
                         EditorUtility.SetDirty(nrmTexAsset);
                     }
                 }
@@ -174,7 +177,7 @@ namespace VATSystem.Editor
                 vatData.VertexCount = _vertCount;
                 vatData.KeyframeCount = keyframeCount;
                 vatData.Duration = duration;
-                vatData.Loop = clip.wrapMode == WrapMode.Loop;
+                vatData.Loop = AnimationUtility.GetAnimationClipSettings(clip).loopTime;
                 EditorUtility.SetDirty(vatData);
                 Debug.Log($"{clip.name} baked to {vatDataPath}");
             }
@@ -187,7 +190,10 @@ namespace VATSystem.Editor
             private static Texture2D Render(List<MeshInfo> data, ComputeShader shader, int width)
             {
                 var height = Mathf.CeilToInt((float)data.Count / width);
-                var tex = new Texture2D(width, height, TextureFormat.RGBAHalf, false, false);
+                var tex = new Texture2D(width, height, TextureFormat.RGBAHalf, false, false)
+                {
+                    filterMode = FilterMode.Point
+                };
                 var desc = new RenderTextureDescriptor(width, height)
                 {
                     enableRandomWrite = true,
@@ -220,6 +226,13 @@ namespace VATSystem.Editor
             private struct MeshInfo
             {
                 public Vector4 data;
+            }
+
+            private static int CalculateQuadSideLength(int vertCount, int frameCount)
+            {
+                var totalPixel = vertCount * frameCount;
+                var minSideLength = Mathf.CeilToInt(Mathf.Sqrt(totalPixel));
+                return Mathf.NextPowerOfTwo(minSideLength);
             }
         }
     }
