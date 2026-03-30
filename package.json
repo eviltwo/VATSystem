@@ -1,0 +1,15 @@
+{
+  "name": "com.eviltwo.vat-system",
+  "displayName": "Vertex Animation Texture System",
+  "version": "1.0.0",
+  "unity": "6000.3",
+  "description": "Vertex Animation Texture for Unity 6 (URP)",
+  "author": {
+    "name": "DAIKI(eviltwo)",
+    "url": "https://github.com/eviltwo"
+  },
+  "keywords": [
+  ],
+  "dependencies": {
+  }
+}
