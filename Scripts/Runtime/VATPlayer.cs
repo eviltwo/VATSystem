@@ -15,6 +15,7 @@ namespace VATSystem
         private static readonly int LoopProperty = Shader.PropertyToID("_VAT_Loop");
         private static readonly int SpeedProperty = Shader.PropertyToID("_VAT_Speed");
         private static readonly int StartTimeProperty = Shader.PropertyToID("_VAT_StartTime");
+        private static readonly int TimeOffsetProperty = Shader.PropertyToID("_VAT_TimeOffset");
 
         [SerializeField]
         private MeshRenderer _meshRenderer;
@@ -49,6 +50,14 @@ namespace VATSystem
 
         private IMaterialPropertySetter _materialPropertySetter;
 
+        private float _startTime;
+
+        private float _timeOffset;
+
+        public bool Looping { get; private set; }
+
+        public float Speed { get; private set; }
+
         private void Reset()
         {
             MeshRenderer = GetComponentInChildren<MeshRenderer>();
@@ -81,7 +90,7 @@ namespace VATSystem
         }
 #endif
 
-        public void Play(VATData vatData, float speed = 1, VATPlaybackMode playbackMode = VATPlaybackMode.UseData)
+        public void Play(VATData vatData, float speed = 1, float timeOffset = 0, VATPlaybackMode playbackMode = VATPlaybackMode.UseData)
         {
             if (MeshRenderer == null) return;
             if (vatData == null) return;
@@ -90,7 +99,10 @@ namespace VATSystem
             _playingData = vatData;
 
             CreateMaterialPropertySetterIfNeeded();
-            var loop = playbackMode == VATPlaybackMode.UseData ? _playingData.Loop : playbackMode == VATPlaybackMode.Loop;
+            Looping = playbackMode == VATPlaybackMode.UseData ? _playingData.Loop : playbackMode == VATPlaybackMode.Loop;
+            Speed = speed;
+            _startTime = Time.time;
+            _timeOffset = timeOffset;
             _materialPropertySetter.SetTexture(VertTexProperty, _data.VertexTexture);
             _materialPropertySetter.SetTexture(NormalTexProperty, _data.NormalTexture);
             _materialPropertySetter.SetFloat(TextureWidthProperty, _data.VertexTexture.width);
@@ -98,9 +110,10 @@ namespace VATSystem
             _materialPropertySetter.SetFloat(VertexCountProperty, _playingData.VertexCount);
             _materialPropertySetter.SetFloat(KeyframeCountProperty, _playingData.KeyframeCount);
             _materialPropertySetter.SetFloat(DurationProperty, _playingData.Duration);
-            _materialPropertySetter.SetFloat(LoopProperty, loop ? 1 : 0);
-            _materialPropertySetter.SetFloat(SpeedProperty, speed);
-            _materialPropertySetter.SetFloat(StartTimeProperty, Time.time);
+            _materialPropertySetter.SetFloat(LoopProperty, Looping ? 1 : 0);
+            _materialPropertySetter.SetFloat(SpeedProperty, Speed);
+            _materialPropertySetter.SetFloat(StartTimeProperty, _startTime);
+            _materialPropertySetter.SetFloat(TimeOffsetProperty, _timeOffset);
             _materialPropertySetter.Apply();
         }
 
@@ -108,14 +121,58 @@ namespace VATSystem
         {
             if (MeshRenderer == null) return;
 
+            var animTime = GetCurrentAnimationTime();
+            _data = null;
             _playingData = null;
 
             CreateMaterialPropertySetterIfNeeded();
             _materialPropertySetter.SetFloat(SpeedProperty, 0);
+            _materialPropertySetter.SetFloat(StartTimeProperty, Time.time);
+            _materialPropertySetter.SetFloat(TimeOffsetProperty, animTime);
             _materialPropertySetter.Apply();
         }
 
-        public void CreateMaterialPropertySetterIfNeeded()
+        public bool IsPlaying()
+        {
+            if (_playingData == null) return false;
+            return Looping || GetElapsedTime() < _playingData.Duration;
+        }
+
+        private float GetElapsedTime()
+        {
+            if (_playingData == null) return 0;
+            return Time.time - _startTime;
+        }
+
+        public float GetAnimationDuration()
+        {
+            if (_playingData == null) return 0;
+            return _playingData.Duration;
+        }
+
+        public float GetCurrentAnimationTime()
+        {
+            if (_playingData == null) return 0;
+            var elapsedTime = GetElapsedTime();
+            var animTime = elapsedTime * Speed + _timeOffset;
+            return Looping ? animTime % _playingData.Duration : Mathf.Clamp(animTime, 0, _playingData.Duration);
+        }
+
+        public void SetSpeed(float speed)
+        {
+            if (Mathf.Approximately(speed, Speed)) return;
+            var animTime = GetCurrentAnimationTime();
+            Speed = speed;
+            _startTime = Time.time;
+            _timeOffset = animTime;
+            CreateMaterialPropertySetterIfNeeded();
+            _materialPropertySetter.SetFloat(SpeedProperty, Speed);
+            _materialPropertySetter.SetFloat(StartTimeProperty, _startTime);
+            _materialPropertySetter.SetFloat(TimeOffsetProperty, _timeOffset);
+            _materialPropertySetter.Apply();
+        }
+
+        private void CreateMaterialPropertySetterIfNeeded()
         {
             if (_materialPropertySetter == null)
             {
